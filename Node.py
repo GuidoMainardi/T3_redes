@@ -11,4 +11,4 @@ class Node(object):
         print(f"Node: {self.name}")
         print(f"MAM: {self.MAC}")
         print(f"IP: {self.IP}")
-        print(f"gateway: {self.gateway}\n")
+        print(f"gateway: {self.gateway}")

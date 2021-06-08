@@ -1,6 +1,7 @@
 def imprime(list):
     for elem in list:
         elem.imprime()
+        print()
 
 def parser(file):
     arq = open(file, "r").read()
@@ -20,25 +21,29 @@ def parser(file):
 
     routers = []
     for elem in r:
-        router_info = elem.split(',')
-        name = router_info[0]
-        num_ports = router_info[1]
+        table_info = elem.split(',')
+        router_name = table_info[0]
+        num_ports = table_info[1]
         IPs = []
         MACs = []
-        for i in range(2, len(router_info), 2):
-            MACs.append(router_info[i])
-            IPs.append(router_info[i+1])
-        routers.append(Router.Router(name, num_ports, IPs, MACs))
+        for i in range(2, len(table_info), 2):
+            MACs.append(table_info[i])
+            IPs.append(table_info[i+1])
+        routers.append(Router.Router(name, router_name, IPs, MACs))
 
 
     tables = []
     for elem in t:
-        #parser tables
-        pass
+        table_info = elem.split(',')
+        name = table_info[0]
+        net_dest = table_info[1]
+        nexthop = table_info[2]
+        port = table_info[3]
+        tables.append(Router_table.Router_table(name, net_dest, nexthop, port))
 
     return nodes, routers, tables
 
-import Node, Router
+import Node, Router, Router_table
 import sys
 
 file = sys.argv[1]
@@ -49,3 +54,4 @@ nodes, routers, tables = parser(file)
 
 imprime(nodes)
 imprime(routers)
+imprime(tables)

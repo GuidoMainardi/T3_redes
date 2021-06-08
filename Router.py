@@ -11,4 +11,5 @@ class Router(object):
         print(f"Ports: {self.num_ports}\n")
         for i in range(len(self.IPs)):
             print(f"MAC{i}: {self.MACs[i]}")
-            print(f"IP{i}: {self.IPs[i]}\n")
+            print(f"IP{i}: {self.IPs[i]}")
+        print()
