@@ -1,9 +1,64 @@
+import re
+from enum import Enum
 import Node, Router, Router_table
 
-def imprime(list):
-    for elem in list:
-        elem.imprime()
-        print()
+class Flag(Enum):
+	ARP_req = 1
+	ARP_reply = 2
+	ICMP_req = 3
+	ICMP_reply = 4
+	ICMP_time = 5
+
+def imprime(str, src_ip = 0, src_name = 0, dst_ip = 0, dst_name = 0, ttl = 8, mac = 0):
+	if str == Flag.ARP_req:
+		print(f"Note over {src_name} : ARP Request<br/>Who has {dst_ip}? Tell {src_ip}")
+
+	elif str == Flag.ARP_reply:
+		print(f"{src_name} ->> {dst_name} : ARP Reply<br/>{src_ip} is at {mac}")
+
+	elif str == Flag.ICMP_req:
+		print(f"{src_name} ->> {dst_name} : ICMP Echo Request<br/>src={src_ip} dst={dst_ip} ttl={ttl}")
+
+	elif str == Flag.ICMP_reply:
+		print(f"{src_name} ->> {dst_name} : ICMP Echo Reply<br/>src={src_ip} dst={dst_ip} ttl={ttl}")
+
+	elif str == Flag.ICMP_time:
+		print(f"{src_name} ->> {dst_name} : ICMP Time Exceeded<br/>src={src_ip} dst={dst_ip} ttl={ttl}")
+
+	else:
+		print("ERRO :(")
+
+	return
+
+#verifica se "n1" e "n2" sao da mesma rede, retorna True ou False
+def checkRede(n1, n2):
+	#!!! perguntar pro sor, se todos os ip's vao ter mascara (i.e. se todos vao ter a "/" no ip)
+	#se sim -> alterar o código
+
+	a = ""
+	b = ""
+	l = re.split("\.|/", n1)
+	mask = int(l[-1])
+
+	for i in range(len(l)-1):
+		c = "{0:b}".format(int(l[i]))
+		while len(c) != 8:
+			c = "0" + c
+
+		a += c
+
+	l = re.split("\.|/", n2)
+
+	for i in range(len(l)-1):
+		c = "{0:b}".format(int(l[i]))
+		while len(c) != 8:
+			c = "0" + c
+
+		b += c
+
+	return a[:mask] == b[:mask]
+
+
 
 def parser(file):
     arq = open(file, "r").read()
