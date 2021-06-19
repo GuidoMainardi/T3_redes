@@ -172,8 +172,8 @@ def ARP(src, dst, Rport=None, Rip=None):
 			dst_aux = dst.IP.split("/")[0]
 			dst_MAC = dst.MAC
 
-	imprime(Flag.ARP_req, src_name=src.name, dst_ip=dst_aux, src_ip=src_aux)
-	imprime(Flag.ARP_reply, src_name=dst.name, dst_name=src.name, src_ip=dst_aux, mac=dst_MAC)
+	imprime(Flag.ARP_req, src_name=src.name, dst_ip=dst_aux.split("/")[0], src_ip=src_aux.split("/")[0])
+	imprime(Flag.ARP_reply, src_name=dst.name, dst_name=src.name.split("/")[0], src_ip=dst_aux.split("/")[0], mac=dst_MAC)
 
 	#atualiza lista ARP de ambos
 	src.lst_ARP.add(dst_MAC)
@@ -218,22 +218,42 @@ def search(src, dst, routers, tables):
 	
 
 termina = 0
-def ICMP(src, dst, routers, tables, sender, n, reverse):
+def ICMP(src, dst, routers, tables, sender, n, reverse, time_ip=None):
 	global termina
+
+	#verifica se deu time exceed na rede
+	if n == 0:
+		#verificar se agora o "sender" é um roteador para, caso seja, passar um IP valido (se não ele vai passar uma lista de IPs na hora de imprimir)
+		if type(src) == Router.Router:
+			#pegando o IP certo
+			porta, dstIP, prox_passo = search(src, sender, routers, tables)
+
+			ICMP(src, sender, routers, tables, src, 8, 2, time_ip=src.IPs[porta])
+
+		else:
+			ICMP(src, sender, routers, tables, src, 8, 2)
 
 	#verifica se sao da mesma rede
 	mesma_rede = checkRede(src, dst)
 	if mesma_rede:
 		#se sim, entao ambos sao Node
 		#checar se precisa do ARP entre src e dst
+		prox_passo = dst
 		if src.MAC not in dst.lst_ARP:
 			ARP(src, dst)
 		
-		if reverse:
-			imprime(Flag.ICMP_reply, src_name=src.name, dst_name=dst.name, src_ip=sender.IP, dst_ip=dst.IP, ttl=n)
+		if reverse == 1:
+			imprime(Flag.ICMP_reply, src_name=src.name, dst_name=dst.name, src_ip=sender.IP.split("/")[0], dst_ip=dst.IP.split("/")[0], ttl=n)
 
-		else:
-			imprime(Flag.ICMP_req, src_name=src.name, dst_name=dst.name, src_ip=sender.IP, dst_ip=dst.IP, ttl=n)
+		elif reverse == 0:
+			imprime(Flag.ICMP_req, src_name=src.name, dst_name=dst.name, src_ip=sender.IP.split("/")[0], dst_ip=dst.IP.split("/")[0], ttl=n)
+
+		elif reverse == 2:
+			if time_ip == None:
+				imprime(Flag.ICMP_time, src_name=src.name, dst_name=dst.name, src_ip=sender.IP.split("/")[0], dst_ip=dst.IP.split("/")[0], ttl=n)
+
+			else:
+				imprime(Flag.ICMP_time, src_name=src.name, dst_name=dst.name, src_ip=time_ip.split("/")[0], dst_ip=dst.IP.split("/")[0], ttl=n)
 
 	else:
 		porta, dstIP, prox_passo = search(src, dst, routers, tables)
@@ -244,22 +264,36 @@ def ICMP(src, dst, routers, tables, sender, n, reverse):
 				if getMACbyIP(prox_passo, dstIP) not in src.lst_ARP:
 					ARP(src, prox_passo, Rport=porta, Rip=dstIP)
 				
-				if reverse:
-					imprime(Flag.ICMP_reply, src_name=src.name, dst_name=prox_passo.name, src_ip=sender.IP, dst_ip=dst.IP, ttl=n)
+				if reverse == 1:
+					imprime(Flag.ICMP_reply, src_name=src.name, dst_name=prox_passo.name, src_ip=sender.IP.split("/")[0], dst_ip=dst.IP.split("/")[0], ttl=n)
 
-				else:
-					imprime(Flag.ICMP_req, src_name=src.name, dst_name=prox_passo.name, src_ip=sender.IP, dst_ip=dst.IP, ttl=n)
+				elif reverse == 0:
+					imprime(Flag.ICMP_req, src_name=src.name, dst_name=prox_passo.name, src_ip=sender.IP.split("/")[0], dst_ip=dst.IP.split("/")[0], ttl=n)
+
+				elif reverse == 2:
+					if time_ip == None:
+						imprime(Flag.ICMP_time, src_name=src.name, dst_name=prox_passo.name, src_ip=sender.IP.split("/")[0], dst_ip=dst.IP.split("/")[0], ttl=n)
+
+					else:
+						imprime(Flag.ICMP_time, src_name=src.name, dst_name=prox_passo.name, src_ip=time_ip.split("/")[0], dst_ip=dst.IP.split("/")[0], ttl=n)
 
 			else:
 				#de roteador pra nodo
 				if prox_passo.MAC not in src.lst_ARP:
 					ARP(src, prox_passo)
 
-				if reverse:
-					imprime(Flag.ICMP_reply, src_name=src.name, dst_name=dst.name, src_ip=sender.IP, dst_ip=dst.IP, ttl=n)
+				if reverse == 1:
+					imprime(Flag.ICMP_reply, src_name=src.name, dst_name=dst.name, src_ip=sender.IP.split("/")[0], dst_ip=dst.IP.split("/")[0], ttl=n)
 
-				else:
-					imprime(Flag.ICMP_req, src_name=src.name, dst_name=dst.name, src_ip=sender.IP, dst_ip=dst.IP, ttl=n)
+				elif reverse == 0:
+					imprime(Flag.ICMP_req, src_name=src.name, dst_name=dst.name, src_ip=sender.IP.split("/")[0], dst_ip=dst.IP.split("/")[0], ttl=n)
+
+				elif reverse == 2:
+					if time_ip == None:
+						imprime(Flag.ICMP_time, src_name=src.name, dst_name=dst.name, src_ip=sender.IP.split("/")[0], dst_ip=dst.IP.split("/")[0], ttl=n)
+
+					else:
+						imprime(Flag.ICMP_time, src_name=src.name, dst_name=dst.name, src_ip=time_ip.split("/")[0], dst_ip=dst.IP.split("/")[0], ttl=n)
 
 		else:
 			#de nodo pra roteador
@@ -267,22 +301,32 @@ def ICMP(src, dst, routers, tables, sender, n, reverse):
 			if src.MAC not in a.lst_ARP:
 				ARP(src, a)
 
-			if reverse:
-				imprime(Flag.ICMP_reply, src_name=src.name, dst_name=prox_passo.name, src_ip=sender.IP, dst_ip=dst.IP, ttl=n)
+			if reverse == 1:
+				imprime(Flag.ICMP_reply, src_name=src.name, dst_name=prox_passo.name, src_ip=sender.IP.split("/")[0], dst_ip=dst.IP.split("/")[0], ttl=n)
 
-			else:
-				imprime(Flag.ICMP_req, src_name=src.name, dst_name=prox_passo.name, src_ip=sender.IP, dst_ip=dst.IP, ttl=n)
+			elif reverse == 0:
+				imprime(Flag.ICMP_req, src_name=src.name, dst_name=prox_passo.name, src_ip=sender.IP.split("/")[0], dst_ip=dst.IP.split("/")[0], ttl=n)
+
+			elif reverse == 2:
+				if time_ip == None:
+					imprime(Flag.ICMP_time, src_name=src.name, dst_name=prox_passo.name, src_ip=sender.IP.split("/")[0], dst_ip=dst.IP.split("/")[0], ttl=n)
+
+				else:
+					imprime(Flag.ICMP_time, src_name=src.name, dst_name=prox_passo.name, src_ip=time_ip.split("/")[0], dst_ip=dst.IP.split("/")[0], ttl=n)
 
 	if not mesma_rede and prox_passo != dst:
-		ICMP(prox_passo, dst, routers, tables, sender, n-1, reverse)
+		ICMP(prox_passo, dst, routers, tables, sender, n-1, reverse, time_ip=time_ip)
 
-	elif not reverse:
+	elif reverse == 0:
 		if termina == 1:
 			exit()
 		
 		else:
 			termina = 1
-			ICMP(prox_passo, sender, routers, tables, dst, 8, True)
+			ICMP(prox_passo, sender, routers, tables, dst, 8, 1)
+
+	elif reverse == 2:
+		exit()
 
 
 	
