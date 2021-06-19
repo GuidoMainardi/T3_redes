@@ -12,14 +12,21 @@ nodes, routers, tables = utility.parser(file)
 origem = nodes[int(params[0].split("n")[-1])-1]
 destino = nodes[int(params[1].split("n")[-1])-1]
 
+""" utility.search(origem, destino, routers, tables)
+exit()
+
 #criando rotas
-rota = utility.search(origem, destino, routers)
+if not utility.checkRede(origem, destino):
+	rota = utility.search(origem, destino, routers)
+
+else:
+	rota = [] """
+
 #chamando o ICMP
-utility.ICMP(origem, destino, rota, routers)
+utility.ICMP(origem, destino, routers, tables, origem, 8, False)
 
+# TODO: testar pra topologia3 -> se funciona ir pra topologiaLoop -> se ficar infinito = duca!
+# TODO: implementar time exceed quando for ping E ttl == 0
+# TODO: implementar bgl de traceroute
 
-
-
-#TODO: terminar a função search do utility (com mais de um roteador linkado ela certamente n vai funcionar)
-#TODO: função ARP provavelmente não funciona quando ambos parametros são roteadores
-#TODO: fazer um get ip em router pra n ficar um lixo
+# TODO: CABO FI! :D
