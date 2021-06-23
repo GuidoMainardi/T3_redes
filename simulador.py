@@ -14,7 +14,11 @@ destino = nodes[int(params[1].split("n")[-1])-1]
 
 
 #chamando o ICMP
-utility.ICMP(origem, destino, routers, tables, origem, 8, 0)
+if instruction == "ping":
+	utility.ICMP(origem, destino, routers, tables, origem, 8, 0, instruction)
+
+else:
+	utility.ICMP(origem, destino, routers, tables, origem, 1, 0, instruction)
 
 # TODO: implementar bgl de traceroute
 

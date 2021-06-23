@@ -214,27 +214,41 @@ def search(src, dst, routers, tables):
 		#cheguei no nodo
 		return respPort, resp, dst
 
+	#print("-->",respPort, resp,"<--")
 	return respPort, resp, getRouter(resp, routers)
 	
 
 termina = 0
-def ICMP(src, dst, routers, tables, sender, n, reverse, time_ip=None):
+trace = 1
+def ICMP(src, dst, routers, tables, sender, n, reverse, tipo, time_ip=None, receiver_traceroute=None):
 	global termina
+	global trace
 
-	#verifica se deu time exceed na rede
+	#verifica se deu time exceeded na rede
 	if n == 0:
+		#caso seja o comando ping e ttl chegue a 0 avisar que depois do time exceeded é para encerrar, se não ele continua infinitamente na linha 354
+		if tipo == "ping":
+			termina = 1
+
+		if reverse == 2:
+			#verifica se o ttl do time exceeded chegou em 0, caso ocorra encerrar o simulador
+			exit()
+
+		#print("aaa :)", src.name, dst.name)
 		#verificar se agora o "sender" é um roteador para, caso seja, passar um IP valido (se não ele vai passar uma lista de IPs na hora de imprimir)
 		if type(src) == Router.Router:
 			#pegando o IP certo
 			porta, dstIP, prox_passo = search(src, sender, routers, tables)
-
-			ICMP(src, sender, routers, tables, src, 8, 2, time_ip=src.IPs[porta])
+			#print(prox_passo.name)
+			ICMP(src, sender, routers, tables, src, 8, 2, tipo, time_ip=src.IPs[porta], receiver_traceroute=dst)
 
 		else:
-			ICMP(src, sender, routers, tables, src, 8, 2)
+			ICMP(src, sender, routers, tables, src, 8, 2, tipo, receiver_traceroute=dst)
 
+	
 	#verifica se sao da mesma rede
 	mesma_rede = checkRede(src, dst)
+	#print("n:", n, mesma_rede)
 	if mesma_rede:
 		#se sim, entao ambos sao Node
 		#checar se precisa do ARP entre src e dst
@@ -257,6 +271,7 @@ def ICMP(src, dst, routers, tables, sender, n, reverse, time_ip=None):
 
 	else:
 		porta, dstIP, prox_passo = search(src, dst, routers, tables)
+		#print(src.name, dst.name, prox_passo.name)
 		#senao -> verificar se precisa de ARP entre src e seu gatemay (Router)
 		if type(src) == Router.Router:
 			if type(prox_passo) == Router.Router:
@@ -297,9 +312,10 @@ def ICMP(src, dst, routers, tables, sender, n, reverse, time_ip=None):
 
 		else:
 			#de nodo pra roteador
-			a = getRouter(src.gateway, routers)
-			if src.MAC not in a.lst_ARP:
-				ARP(src, a)
+			#a = getRouter(src.gateway, routers)
+			#print(a == prox_passo)
+			if src.MAC not in prox_passo.lst_ARP:
+				ARP(src, prox_passo)
 
 			if reverse == 1:
 				imprime(Flag.ICMP_reply, src_name=src.name, dst_name=prox_passo.name, src_ip=sender.IP.split("/")[0], dst_ip=dst.IP.split("/")[0], ttl=n)
@@ -315,7 +331,7 @@ def ICMP(src, dst, routers, tables, sender, n, reverse, time_ip=None):
 					imprime(Flag.ICMP_time, src_name=src.name, dst_name=prox_passo.name, src_ip=time_ip.split("/")[0], dst_ip=dst.IP.split("/")[0], ttl=n)
 
 	if not mesma_rede and prox_passo != dst:
-		ICMP(prox_passo, dst, routers, tables, sender, n-1, reverse, time_ip=time_ip)
+		ICMP(prox_passo, dst, routers, tables, sender, n-1, reverse, tipo, time_ip=time_ip, receiver_traceroute=receiver_traceroute)
 
 	elif reverse == 0:
 		if termina == 1:
@@ -323,10 +339,17 @@ def ICMP(src, dst, routers, tables, sender, n, reverse, time_ip=None):
 		
 		else:
 			termina = 1
-			ICMP(prox_passo, sender, routers, tables, dst, 8, 1)
+			ICMP(prox_passo, sender, routers, tables, dst, 8, 1, tipo)
 
 	elif reverse == 2:
+		if termina == 1:
+			exit()
+
+		#elif dst == receiver_traceroute:
+		#	termina = 1
+
+		#else:
+		trace += 1
+		#print(prox_passo.name, receiver_traceroute.name)
+		ICMP(prox_passo, receiver_traceroute, routers, tables, prox_passo, trace, 0, tipo, time_ip=time_ip, receiver_traceroute=receiver_traceroute)
 		exit()
-
-
-	
